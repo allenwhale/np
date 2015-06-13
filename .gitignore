@@ -1,4 +1,5 @@
 # Compiled Object files
+.*.sw[opq]
 *.slo
 *.lo
 *.o
