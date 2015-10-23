@@ -51,14 +51,6 @@ int Server::Connect(){
         fprintf(stderr, "listen failed\r\n");
         return -1;
     }
-	/*
-	if(non_blocking(sockfd) < 0){
-		fprintf(stderr, "set sockfd non blocking failed\n");
-	}
-	if(non_blocking(fifofd) < 0){
-		fprintf(stderr, "set fifofd non blocking failed\n");
-	}
-	*/
 	epoll_add_event(epfd, sockfd, EPOLLIN);
 	epoll_add_event(epfd, fifofd, EPOLLIN);
 	epoll_add_event(epfd, STDIN_FILENO, EPOLLIN);
@@ -89,20 +81,12 @@ int Server::ServerProcess(){
 	}
 }
 int Server::ClientProcess(int fd){
-	std::string buf;
-	if(Read(fd, buf) <= 0){
-		CloseClient(fd);
-		return -1;
-	}
-	printf("fd=%d %s\n", fd, buf.c_str());
 	return 0;
 }
 int Server::StdinProcess(){
 	std::string buf;
-	if(Read(STDIN_FILENO, buf) <= 0)
-		return -1;
-	if(buf == "exit")
-		Close();
+	if(Read(STDIN_FILENO, buf) <= 0) return -1;
+	if(buf == "exit") Close();
 	return 0;
 }
 void Server::Run(){
@@ -112,15 +96,12 @@ void Server::Run(){
 		res = epoll_wait(epfd, events, MAX_EPOLL_SIZE, -1);
 		for(int i=0;i<res;i++){
 			int fd = events[i].data.fd;
-			if(fd == sockfd){
+			if(fd == sockfd)
 				ServerProcess();
-			}
-			else if(fd == STDIN_FILENO){
+			else if(fd == STDIN_FILENO)
 				StdinProcess();
-			}
-			else if(fd == fifofd){
+			else if(fd == fifofd)
 				ClientProcess(fd);
-			}
 		}
 	}
 }
@@ -147,17 +128,13 @@ void Server::Close(){
 }
 void zombie_handler(int sig){
 	int status, pid = waitpid(-1, &status, WNOHANG);
-	if(pid!=-1&&WIFEXITED(status)){
+	if(pid!=-1&&WIFEXITED(status))
 		client_pid.erase(pid);
-	}
 }
 int main(){
-	Server server(1234, 10);
+	Server server(1234, MAX_EPOLL_SIZE);
 	signal(SIGCHLD, zombie_handler);
-	int res = server.Connect();
-	printf("%d\n", res);
-	if(res != 0)
-		return 0;
+	if(server.Connect() != 0)return 0;
 	server.Run();
 	return 0;
 }

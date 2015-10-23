@@ -45,13 +45,13 @@ public:
 };
 class PipeLine{
 public:
-	std::map<int, Pipe> p;
+	std::unordered_map<int, Pipe> p;
 	PipeLine();
 	Pipe& operator [] (int);
 };
 class PipeSet{
 public:
-	std::map<int, PipeLine> p;
+	std::unordered_map<int, PipeLine> p;
 	PipeSet();
 	PipeLine& operator [] (int);
 };

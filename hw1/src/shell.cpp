@@ -16,8 +16,7 @@ void Shell::Init(){
 }
 
 void Shell::Prompt(){
-	printf("%% ");
-	FSTDOUT;
+	printf("%% "); FSTDOUT;
 }
 
 void Shell::Run(){
@@ -32,8 +31,7 @@ void Shell::Run(){
 
 int Shell::Exec(const std::string& buf){
 	CommandLine cmd;
-	if(cmd.Parse(buf, command_num) < 0)
-		return -1;
+	if(cmd.Parse(buf, command_num) < 0) return -1;
 	command_num++;
 	return _Exec(cmd);
 }
@@ -44,7 +42,7 @@ int Shell::_Exec(CommandLine& cmd){
 		exit(0);
 	}else if(cmd[0][0] == "printenv"){
 		if(cmd[0].size() < 2) return -1;
-		printf("%s\n", getenv(cmd[0][1].c_str()));
+		printf("%s\n", getenv(cmd[0][1].c_str())); FSTDOUT;
 		return 0;
 	}else if(cmd[0][0] == "setenv"){
 		if(cmd[0].size() < 3) return -1;
@@ -57,22 +55,14 @@ int Shell::_Exec(CommandLine& cmd){
 }
 
 int Shell::ExecCommand(const CommandLine& cmd){
-	int pgid = 0;
-	/*for(int i=0;i<(int)cmd.size();i++){
-		Command c = cmd[i];
-		Pipe pipe_in, pipe_out, pipe_err;
-		pipe_in = pipe_set[cmd.command_num][i];
-		if(c.pipe_stdout != NON_PIPE)pipe_out = pipe_set[c.pipe_stdout.first][c.pipe_stdout.second];
-		if(c.pipe_stderr != NON_PIPE)pipe_err = pipe_set[c.pipe_stderr.first][c.pipe_stderr.second];
-	}*/
+	int pid, pgid = 0;
 	for(int i=0;i<(int)cmd.size();i++){
 		Command c = cmd[i];
 		Pipe pipe_in, pipe_out, pipe_err;
 		pipe_in = pipe_set[cmd.command_num][i];
 		if(c.pipe_stdout != NON_PIPE)pipe_out = pipe_set[c.pipe_stdout.first][c.pipe_stdout.second];
 		if(c.pipe_stderr != NON_PIPE)pipe_err = pipe_set[c.pipe_stderr.first][c.pipe_stderr.second];
-		int pid = fork();
-		if(pid == 0){
+		if((pid=fork()) == 0){
 			if(dup2(pipe_in[0], 0) == -1)perror("dup2 stdin");
 			if(c.pipe_stdout != NON_PIPE)
 				if(dup2(pipe_out[1], STDOUT_FILENO) == -1)
@@ -107,17 +97,15 @@ int Shell::ExecCommand(const CommandLine& cmd){
 		if(c.pipe_stdout != NON_PIPE && i != cmd.size()-1)pipe_set[c.pipe_stdout.first][c.pipe_stdout.second].Destruct();
 		if(c.pipe_stderr != NON_PIPE && i != cmd.size()-1)pipe_set[c.pipe_stderr.first][c.pipe_stderr.second].Destruct();
 	}
-	for(int i=0;i<(int)cmd.size();i++){
-		int pid = waitpid(-pgid, NULL, 0);
-	}
+	for(int i=0;i<(int)cmd.size();i++)
+		waitpid(-pgid, NULL, 0);
 }
 
 int Shell::MyExec(const Command& cmd){
 	const char *args[cmd.size()+2]={NULL};
 	for(int i=0;i<(int)cmd.size();i++)
 		args[i] = cmd[i].c_str();
-	if(execvp(args[0], (char *const*)args) == -1){
+	if(execvp(args[0], (char *const*)args) == -1)
 		exit(errno);
-	}
 	return 0;
 }

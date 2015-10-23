@@ -1,4 +1,5 @@
 #include "command.h"
+#include "function.h"
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <bits/stdc++.h>
@@ -46,8 +47,7 @@ int CommandLine::Parse(const std::string& str, int cmd_num){
 	std::vector<std::string> split;
 	std::stringstream ss(str);
 	std::string s;
-	while(ss >> s)
-		split.push_back(s);
+	while(ss >> s) split.push_back(s);
 	int new_command = 1;
 	if((int)split.size() > 2 && split[split.size()-2] == ">"){
 		filename = split.back();
@@ -57,21 +57,12 @@ int CommandLine::Parse(const std::string& str, int cmd_num){
 	int num = 1;
 	for(auto c: split){
 		if(c[0] == '|'){
-			num = 1;
-			if(c.size() > 1){
-				std::stringstream ss;
-				ss << c.substr(1);
-				ss >> num;
-			}
+			num = (int)c.size() > 1 ? string2int(c.substr(1)) : 1;
 			cmd.back().pipe_stdout = {cmd_num, cmd.size() - 1 + num};
 			new_command = 1;
 		}else if(c[0] == '!'){
-			num = 1;
-			if(c.size() > 1){
-				std::stringstream ss;
-				ss << c.substr(1);
-				ss >> num;
-			}
+			num = (int)c.size() > 1 ? string2int(c.substr(1)) : 1;
+			if(c.size() > 1) num = string2int(c.substr(1));
 			cmd.back().pipe_stderr = {cmd_num, cmd.size() - 1 + num};
 			new_command = 1;
 		}else{
@@ -93,9 +84,8 @@ int CommandLine::Parse(const std::string& str, int cmd_num){
 void CommandLine::Check(){
 	for(int i=0;i<(int)cmd.size();i++){
 		if(executable(cmd[i][0]) == false){
-			printf("Unknown command: [%s].\n", cmd[i][0].c_str());
-			for(int j=0;j<cmd.size()-i+1;j++)
-				cmd.pop_back();
+			printf("Unknown command: [%s].\n", cmd[i][0].c_str()); FSTDOUT;
+			for(int j=0;j<cmd.size()-i+1;j++) cmd.pop_back();
 			filename = "";
 			break;
 		}
