@@ -11,27 +11,27 @@
 #include "server.h"
 #include "command.h"
 #include "shell.h"
+#define PORT 1234
 std::set<int> client_pid;
-Server::Server( int _port, int _connection): port(_port), connection(_connection){
-	fifo = "/tmp/server_fifo";
+Server::Server( int _port, int _connection): port(_port), connection(_connection), fifo("/tmp/server_fifo"){
 	unlink(fifo.c_str());
 }
 
 int Server::Connect(){
 	if((epfd=epoll_create(MAX_EPOLL_SIZE)) < 0){
-		fprintf(stderr, "epoll create failed\n");
+		perror("epoll create failed");
 		return -1;
 	}
 	if(mkfifo(fifo.c_str(), 0660) < 0){
-		fprintf(stderr, "fifo create failed\n");
+		perror("fifo create failed");
 		return -1;
 	}
 	if((fifofd=open(fifo.c_str(), O_RDONLY|O_NONBLOCK)) < 0){
-		fprintf(stderr, "fifo open failed\n");
+		perror("fifo open failed");
 		return -1;
 	}
     if((sockfd = socket(PF_INET, SOCK_STREAM, 0)) <= 0){
-        fprintf(stderr, "socket creation failed\r\n");
+        perror("socket creation failed");
         return -1;
     }
     memset(&dest, 0 , sizeof(dest));
@@ -40,15 +40,15 @@ int Server::Connect(){
     dest.sin_addr.s_addr = INADDR_ANY;
     int opt = 1;
     if(setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, (const char*)&opt, sizeof(int)) < 0){
-        fprintf(stderr, "setsocketopt failed\r\n");
+        perror("setsocketopt failed");
         return -1;
     }
     if(bind(sockfd, (sockaddr*)&dest, sizeof(dest)) < 0){
-        fprintf(stderr, "bind failed\r\n");
+        perror("bind failed");
         return -1;
     }
     if(listen(sockfd, connection) < 0){
-        fprintf(stderr, "listen failed\r\n");
+        perror("listen failed");
         return -1;
     }
 	epoll_add_event(epfd, sockfd, EPOLLIN);
@@ -63,7 +63,6 @@ int Server::ServerProcess(){
     if((fd = accept(sockfd, (sockaddr*)&cliaddr, (socklen_t*)&addrlen)) < 0){
 		return -1;
 	}
-	printf("connect %d\n", fd);
 	int pid = fork();
 	if(pid == 0){
 		dup2(fd, STDIN_FILENO);
@@ -96,12 +95,9 @@ void Server::Run(){
 		res = epoll_wait(epfd, events, MAX_EPOLL_SIZE, -1);
 		for(int i=0;i<res;i++){
 			int fd = events[i].data.fd;
-			if(fd == sockfd)
-				ServerProcess();
-			else if(fd == STDIN_FILENO)
-				StdinProcess();
-			else if(fd == fifofd)
-				ClientProcess(fd);
+			if(fd == sockfd) ServerProcess();
+			else if(fd == STDIN_FILENO) StdinProcess();
+			else if(fd == fifofd) ClientProcess(fd);
 		}
 	}
 }
@@ -132,7 +128,7 @@ void zombie_handler(int sig){
 		client_pid.erase(pid);
 }
 int main(){
-	Server server(1234, MAX_EPOLL_SIZE);
+	Server server(PORT, MAX_EPOLL_SIZE);
 	signal(SIGCHLD, zombie_handler);
 	if(server.Connect() != 0)return 0;
 	server.Run();

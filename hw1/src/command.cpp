@@ -71,14 +71,10 @@ int CommandLine::Parse(const std::string& str, int cmd_num){
 			cmd.back().cmd.push_back(c);
 		}
 	}
-	if(cmd.size() && cmd.back().pipe_stdout != NON_PIPE){
-		auto p = cmd.back().pipe_stdout;
+	if(cmd.size() && cmd.back().pipe_stdout != NON_PIPE)
 		cmd.back().pipe_stdout = {cmd_num + num, 0};
-	}
-	if(cmd.size() && cmd.back().pipe_stderr != NON_PIPE){
-		auto p = cmd.back().pipe_stderr;
+	if(cmd.size() && cmd.back().pipe_stderr != NON_PIPE)
 		cmd.back().pipe_stderr = {cmd_num + num, 0};
-	}
 	return 0;
 }
 void CommandLine::Check(){
@@ -112,8 +108,7 @@ int Pipe::operator [] (int n) const {
 	return p[n];
 }
 
-PipeLine::PipeLine(){
-}
+PipeLine::PipeLine(){}
 Pipe& PipeLine::operator [] (int n){
 	if(p.find(n) == p.end()) p[n] = Pipe(), p[n].Create();
 	return p[n];
