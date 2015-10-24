@@ -1,6 +1,6 @@
 #define FSTDOUT fflush(stdout)
 #define FSTDERR fflush(stderr)
-#define BUFFER_SIZE 2048
+#define BUFFER_SIZE 262144
 #define MAX_EPOLL_SIZE 1024
 #include <bits/stdc++.h>
 void epoll_add_event(int, int, int);

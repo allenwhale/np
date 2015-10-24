@@ -119,3 +119,13 @@ PipeLine& PipeSet::operator [] (int n){
 	if(p.find(n) == p.end()) p[n] = PipeLine();
 	return p[n];
 }
+bool PipeSet::Find(int x, int y) {
+	if(p.find(x) == p.end()) return false;
+	if(p[x].p.find(y) == p[x].p.end()) return false;
+	return true;
+}
+void PipeSet::Destruct(int x, int y){
+	if(Find(x, y) == false) return;
+	(*(this))[x][y].Destruct();
+	(*(this))[x].p.erase(y);
+}

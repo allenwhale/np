@@ -32,7 +32,6 @@ void Shell::Run(){
 int Shell::Exec(const std::string& buf){
 	CommandLine cmd;
 	if(cmd.Parse(buf, command_num) < 0) return -1;
-	command_num++;
 	return _Exec(cmd);
 }
 
@@ -49,6 +48,7 @@ int Shell::_Exec(CommandLine& cmd){
 	}else{
 		cmd.Check();
 		if((int)cmd.size() == 0) return -1;
+		command_num++;
 		return ExecCommand(cmd);
 	}
 }
@@ -63,12 +63,14 @@ int Shell::ExecCommand(const CommandLine& cmd){
 		if(c.pipe_stderr != NON_PIPE)pipe_err = pipe_set[c.pipe_stderr.first][c.pipe_stderr.second];
 		if((pid=fork()) == 0){
 			if(dup2(pipe_in[0], 0) == -1)perror("dup2 stdin");
-			if(c.pipe_stdout != NON_PIPE)
+			if(c.pipe_stdout != NON_PIPE){
 				if(dup2(pipe_out[1], STDOUT_FILENO) == -1)
 					perror("dup2 stdout");
-			if(c.pipe_stderr != NON_PIPE)
-				if(dup2(pipe_out[1], STDERR_FILENO))
+			}
+			if(c.pipe_stderr != NON_PIPE){
+				if(dup2(pipe_err[1], STDERR_FILENO) == -1)
 					perror("dup2 stderr");
+			}
 			if(i == (int)cmd.size() - 1 && cmd.filename != ""){
 				int fd = open(cmd.filename.c_str(), O_WRONLY|O_CREAT, 0660);
 				if(dup2(fd, STDOUT_FILENO) == -1)
@@ -77,24 +79,27 @@ int Shell::ExecCommand(const CommandLine& cmd){
 			}
 			for(int i=0;i<(int)cmd.size();i++){
 				Command c = cmd[i];
-				Pipe pipe_in, pipe_out, pipe_err;
-				pipe_set[cmd.command_num][i].Destruct();
-				if(c.pipe_stdout != NON_PIPE && i != cmd.size()-1)pipe_set[c.pipe_stdout.first][c.pipe_stdout.second].Destruct();
-				if(c.pipe_stderr != NON_PIPE && i != cmd.size()-1)pipe_set[c.pipe_stderr.first][c.pipe_stderr.second].Destruct();
+				if(pipe_set.Find(cmd.command_num, i))pipe_set.Destruct(cmd.command_num, i);
+				if(c.pipe_stdout != NON_PIPE && i != cmd.size()-1 && pipe_set.Find(c.pipe_stdout.first, c.pipe_stdout.second))
+					pipe_set.Destruct(c.pipe_stdout.first, c.pipe_stdout.second);
+				if(c.pipe_stderr != NON_PIPE && i != cmd.size()-1 && pipe_set.Find(c.pipe_stderr.first, c.pipe_stderr.second))
+					pipe_set.Destruct(c.pipe_stderr.first, c.pipe_stderr.second);
 			}
 			MyExec(c);
 		}else if(pid > 0){
 			setpgid(pid, pgid);
 			if(i == 0) pgid = pid;
+			pipe_in.Destruct();
 		}else{
 		}
 	}
 	for(int i=0;i<(int)cmd.size();i++){
 		Command c = cmd[i];
-		Pipe pipe_in, pipe_out, pipe_err;
-		pipe_set[cmd.command_num][i].Destruct();
-		if(c.pipe_stdout != NON_PIPE && i != cmd.size()-1)pipe_set[c.pipe_stdout.first][c.pipe_stdout.second].Destruct();
-		if(c.pipe_stderr != NON_PIPE && i != cmd.size()-1)pipe_set[c.pipe_stderr.first][c.pipe_stderr.second].Destruct();
+		if(pipe_set.Find(cmd.command_num, i))pipe_set.Destruct(cmd.command_num, i);
+		if(c.pipe_stdout != NON_PIPE && i != cmd.size()-1 && pipe_set.Find(c.pipe_stdout.first, c.pipe_stdout.second))
+			pipe_set.Destruct(c.pipe_stdout.first, c.pipe_stdout.second);
+		if(c.pipe_stderr != NON_PIPE && i != cmd.size()-1 && pipe_set.Find(c.pipe_stderr.first, c.pipe_stderr.second))
+			pipe_set.Destruct(c.pipe_stderr.first, c.pipe_stderr.second);
 	}
 	for(int i=0;i<(int)cmd.size();i++)
 		waitpid(-pgid, NULL, 0);

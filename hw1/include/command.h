@@ -54,5 +54,7 @@ public:
 	std::unordered_map<int, PipeLine> p;
 	PipeSet();
 	PipeLine& operator [] (int);
+	bool Find(int, int) ;
+	void Destruct(int, int);
 };
 #endif
