@@ -80,9 +80,9 @@ int Shell::ExecCommand(const CommandLine& cmd){
 			for(int i=0;i<(int)cmd.size();i++){
 				Command c = cmd[i];
 				if(pipe_set.Find(cmd.command_num, i))pipe_set.Destruct(cmd.command_num, i);
-				if(c.pipe_stdout != NON_PIPE && i != cmd.size()-1 && pipe_set.Find(c.pipe_stdout.first, c.pipe_stdout.second))
+				if(c.pipe_stdout != NON_PIPE && i != cmd.size()-1)
 					pipe_set.Destruct(c.pipe_stdout.first, c.pipe_stdout.second);
-				if(c.pipe_stderr != NON_PIPE && i != cmd.size()-1 && pipe_set.Find(c.pipe_stderr.first, c.pipe_stderr.second))
+				if(c.pipe_stderr != NON_PIPE && i != cmd.size()-1)
 					pipe_set.Destruct(c.pipe_stderr.first, c.pipe_stderr.second);
 			}
 			MyExec(c);
@@ -96,9 +96,9 @@ int Shell::ExecCommand(const CommandLine& cmd){
 	for(int i=0;i<(int)cmd.size();i++){
 		Command c = cmd[i];
 		if(pipe_set.Find(cmd.command_num, i))pipe_set.Destruct(cmd.command_num, i);
-		if(c.pipe_stdout != NON_PIPE && i != cmd.size()-1 && pipe_set.Find(c.pipe_stdout.first, c.pipe_stdout.second))
+		if(c.pipe_stdout != NON_PIPE && i != cmd.size()-1)
 			pipe_set.Destruct(c.pipe_stdout.first, c.pipe_stdout.second);
-		if(c.pipe_stderr != NON_PIPE && i != cmd.size()-1 && pipe_set.Find(c.pipe_stderr.first, c.pipe_stderr.second))
+		if(c.pipe_stderr != NON_PIPE && i != cmd.size()-1)
 			pipe_set.Destruct(c.pipe_stderr.first, c.pipe_stderr.second);
 	}
 	for(int i=0;i<(int)cmd.size();i++)
