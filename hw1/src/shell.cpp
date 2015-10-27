@@ -13,6 +13,9 @@ Shell::Shell(): command_num(0){}
 void Shell::Init(){
 	chdir("./ras");
 	setenv("PATH", "bin:.", 1);
+	puts("****************************************");
+	puts("** Welcome to the information server. **");
+	puts("****************************************");
 }
 
 void Shell::Prompt(){
@@ -41,7 +44,7 @@ int Shell::_Exec(CommandLine& cmd){
 		exit(0);
 	}else if(cmd[0][0] == "printenv"){
 		if(cmd[0].size() < 2) return -1;
-		printf("%s\n", getenv(cmd[0][1].c_str())); FSTDOUT;
+		printf("%s=%s\n", cmd[0][1].c_str(), getenv(cmd[0][1].c_str())); FSTDOUT;
 	}else if(cmd[0][0] == "setenv"){
 		if(cmd[0].size() < 3) return -1;
 		setenv(cmd[0][1].c_str(), cmd[0][2].c_str(), 1);
