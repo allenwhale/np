@@ -68,6 +68,7 @@ int Server::ServerProcess(){
 		dup2(fd, STDIN_FILENO);
 		dup2(fd, STDOUT_FILENO);
 		dup2(fd, STDERR_FILENO);
+		close(fd);
 		Shell sh;
 		sh.Run();
 		exit(0);
