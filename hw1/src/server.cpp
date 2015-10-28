@@ -118,7 +118,7 @@ void Server::CloseClient(int fd){
 }
 void Server::Close(){
 	for(auto pid: client_pid)
-		kill(pid, SIGINT), waitpid(pid, NULL, 0);
+		printf("close %d\n", pid), kill(pid, SIGINT), waitpid(pid, NULL, 0);
 	close(sockfd);
 	unlink(fifo.c_str());
 	exit(0);
