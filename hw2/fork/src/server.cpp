@@ -100,10 +100,12 @@ int Server::InsertNewClient(int fd, sockaddr_in cliaddr){
     clients[id].set_nickname("(no name)");
     clients[id].fd = fd;
     clients[id].used = true;
-    char *ip = inet_ntoa(cliaddr.sin_addr);
+    //char *ip = inet_ntoa(cliaddr.sin_addr);
+    const char *ip = "CGILAB";
     memset(clients[id].ip, 0, sizeof(clients[id].ip));
     memcpy(clients[id].ip, ip, strlen(ip));
-    clients[id].port = cliaddr.sin_port;
+    //clients[id].port = cliaddr.sin_port;
+    clients[id].port = 511;
     return id;
 }
 bool Server::CheckNickname(const char *nickname){

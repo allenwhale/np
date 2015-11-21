@@ -84,7 +84,7 @@ int Shell::_Exec(CommandLine& cmd){
 		if(cmd[0].size() < 3) return -1;
 		setenv(cmd[0][1].c_str(), cmd[0][2].c_str(), 1);
     }else if(cmd[0][0] == "who"){
-        server->msg[id].Append("<ID>\t<nickname>\t<IP/port>\t<indicate mew>\n");
+        server->msg[id].Append("<ID>\t<nickname>\t<IP/port>\t<indicate me>\n");
         for(int i=1;i<MAX_CLIENT_SIZE;i++){
             if(server->clients[i].used){
                 char msg[256] = {0};

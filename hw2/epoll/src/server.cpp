@@ -65,7 +65,9 @@ int Server::ServerProcess(){
 		return -1;
 	}
     std::string ip = inet_ntoa(cliaddr.sin_addr);
+    ip = "CGILAB";
     int port = cliaddr.sin_port;
+    port = 511;
     int old_stdin = dup(STDIN_FILENO);
     int old_stdout = dup(STDOUT_FILENO);
     int old_stderr = dup(STDERR_FILENO);

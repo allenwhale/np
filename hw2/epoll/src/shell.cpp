@@ -22,6 +22,7 @@ void Shell::Init(){
 	puts("****************************************");
 	puts("** Welcome to the information server. **");
 	puts("****************************************");
+    FSTDOUT;
 }
 
 void Shell::Prompt(){
@@ -81,7 +82,7 @@ int Shell::_Exec(CommandLine& cmd, Client* client, Server* server){
         server->nickname.insert(client->nickname);
         server->SendAll(msg);
     }else if(cmd[0][0] == "who"){
-        printf("<ID>\t<nickname>\t<IP/port>\t<indicate mew>\n");
+        printf("<ID>\t<nickname>\t<IP/port>\t<indicate me>\n");
         for(auto cli: server->clients){
             printf("%d\t%s\t%s/%d%s\n", cli->id, cli->nickname.c_str(), cli->ip.c_str(), cli->port, (cli->id==client->id)?"\t<-me":"");
         }

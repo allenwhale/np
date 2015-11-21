@@ -46,7 +46,7 @@ int CommandLine::Parse(const std::string& str, int cmd_num){
 	command_num = cmd_num;
 	cmd.clear();
     origin = str;
-    while(isspace(origin.back()))origin.pop_back();
+    while(origin.back() == '\r' || origin.back() == '\n')origin.pop_back();
 	std::vector<std::string> split;
 	std::stringstream ss(str);
 	std::string s;
@@ -97,14 +97,14 @@ void CommandLine::Check(Server *server){
     }
     for(int i=0;i<(int)cmd.size();i++){
         if(cmd[i].global_pipe_stdin != -1 && !server->global_pipe[cmd[i].global_pipe_stdin]){
-            printf("*** Error: the pipe #%d does not exist yet. ***\n", cmd[i].global_pipe_stdin);
+            printf("*** Error: public pipe #%d does not exist yet. ***\n", cmd[i].global_pipe_stdin);
             for(int j=0;j<cmd.size()-i+1;j++) cmd.pop_back();
             break;
         }
     }
     for(int i=0;i<(int)cmd.size();i++){
         if(cmd[i].global_pipe_stdout != -1 && server->global_pipe[cmd[i].global_pipe_stdout]){
-            printf("*** Error: the pipe #%d already exists. ***\n", cmd[i].global_pipe_stdout);
+            printf("*** Error: public pipe #%d already exists. ***\n", cmd[i].global_pipe_stdout);
             for(int j=0;j<cmd.size()-i+1;j++) cmd.pop_back();
             break;
         }
