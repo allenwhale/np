@@ -3,7 +3,7 @@ OBJ=./obj
 INCLUDE=./include
 SRC=./src
 CC=g++
-FLAGS=-I. -I$(INCLUDE) -std=c++14 -O2 -Wno-unused-result
+FLAGS=-I. -I$(INCLUDE) -std=c++11 -O2 -Wno-unused-result
 all: $(BIN)/server.out
 	$(BIN)/server.out
 

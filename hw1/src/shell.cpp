@@ -65,7 +65,7 @@ int Shell::ExecCommand(const CommandLine& cmd){
 		if(c.pipe_stdout != NON_PIPE)pipe_out = pipe_set[c.pipe_stdout.first][c.pipe_stdout.second];
 		if(c.pipe_stderr != NON_PIPE)pipe_err = pipe_set[c.pipe_stderr.first][c.pipe_stderr.second];
 		if((pid=fork()) == 0){
-			if(dup2(pipe_in[0], 0) == -1)perror("dup2 stdin");
+			if(dup2(pipe_in[0], STDIN_FILENO) == -1)perror("dup2 stdin");
 			if(c.pipe_stdout != NON_PIPE){
 				if(dup2(pipe_out[1], STDOUT_FILENO) == -1)
 					perror("dup2 stdout");
@@ -82,7 +82,8 @@ int Shell::ExecCommand(const CommandLine& cmd){
 			}
 			for(int i=0;i<(int)cmd.size();i++){
 				Command c = cmd[i];
-				if(pipe_set.Find(cmd.command_num, i))pipe_set.Destruct(cmd.command_num, i);
+				if(pipe_set.Find(cmd.command_num, i))
+                    pipe_set.Destruct(cmd.command_num, i);
 				if(c.pipe_stdout != NON_PIPE && i != cmd.size()-1)
 					pipe_set.Destruct(c.pipe_stdout.first, c.pipe_stdout.second);
 				if(c.pipe_stderr != NON_PIPE && i != cmd.size()-1)
@@ -92,7 +93,8 @@ int Shell::ExecCommand(const CommandLine& cmd){
 		}else if(pid > 0){
 			setpgid(pid, pgid);
 			if(i == 0) pgid = pid;
-			pipe_in.Destruct();
+            pipe_set.Destruct(cmd.command_num, i);
+			//pipe_in.Destruct();
 		}else{
 		}
 	}

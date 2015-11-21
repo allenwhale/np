@@ -77,7 +77,7 @@ int Shell::_Exec(CommandLine& cmd, Client* client, Server* server){
         char msg[256];
         server->nickname.erase(client->nickname);
         client->nickname = cmd[0][1];
-        sprintf(msg, "*** User from (%s/%d) is named '%s'. ***\n", client->ip.c_str(), client->port, client->nickname.c_str());
+        sprintf(msg, "*** User from %s/%d is named '%s'. ***\n", client->ip.c_str(), client->port, client->nickname.c_str());
         server->nickname.insert(client->nickname);
         server->SendAll(msg);
     }else if(cmd[0][0] == "who"){
