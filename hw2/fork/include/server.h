@@ -21,7 +21,8 @@ public:
     Client              clients[MAX_CLIENT_SIZE];
     char                fifo[256];
     Message             msg[MAX_CLIENT_SIZE];
-    bool                global_pipe[MAX_GLOBAL_PIPE];
+    //bool                global_pipe[MAX_GLOBAL_PIPE];
+    int                 global_pipe[MAX_GLOBAL_PIPE];
 	//std::set<int>		client_pid;
     Server(int, int);
     int Connect();
@@ -33,6 +34,9 @@ public:
     int InsertNewClient(int, sockaddr_in);
     int GetClient(int);
     bool CheckNickname(const char*);
+    bool FindGlobalPipe(int);
+    void InsertGlobalPipe(int);
+    void EraseGlobalPipe(int);
     int Tell(int, int, const std::string&);
     int Yell(int, const std::string&);
 	int Read(int, std::string&);

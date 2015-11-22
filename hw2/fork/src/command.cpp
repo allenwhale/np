@@ -96,14 +96,14 @@ void CommandLine::Check(Server *server){
 		}
     }
     for(int i=0;i<(int)cmd.size();i++){
-        if(cmd[i].global_pipe_stdin != -1 && !server->global_pipe[cmd[i].global_pipe_stdin]){
+        if(cmd[i].global_pipe_stdin != -1 && !server->FindGlobalPipe(cmd[i].global_pipe_stdin)){
             printf("*** Error: public pipe #%d does not exist yet. ***\n", cmd[i].global_pipe_stdin);
             for(int j=0;j<cmd.size()-i+1;j++) cmd.pop_back();
             break;
         }
     }
     for(int i=0;i<(int)cmd.size();i++){
-        if(cmd[i].global_pipe_stdout != -1 && server->global_pipe[cmd[i].global_pipe_stdout]){
+        if(cmd[i].global_pipe_stdout != -1 && server->FindGlobalPipe(cmd[i].global_pipe_stdout)){
             printf("*** Error: public pipe #%d already exists. ***\n", cmd[i].global_pipe_stdout);
             for(int j=0;j<cmd.size()-i+1;j++) cmd.pop_back();
             break;
@@ -111,10 +111,10 @@ void CommandLine::Check(Server *server){
     }
     for(int i=0;i<(int)cmd.size();i++){
         if(cmd[i].global_pipe_stdin != -1){
-            server->global_pipe[cmd[i].global_pipe_stdin] = false;
+            server->EraseGlobalPipe(cmd[i].global_pipe_stdin);
         }
         if(cmd[i].global_pipe_stdout != -1){
-            server->global_pipe[cmd[i].global_pipe_stdout] = true;
+            server->InsertGlobalPipe(cmd[i].global_pipe_stdout);
         }
     }
 }

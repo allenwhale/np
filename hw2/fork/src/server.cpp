@@ -20,6 +20,7 @@ std::set<int> client_pid;
 std::set<int> client_id;
 Server::Server( int _port, int _connection): port(_port), connection(_connection){
     memset(global_pipe, false, sizeof(global_pipe));
+    memset(global_pipe, -1, sizeof(global_pipe));
 }
 
 int Server::Connect(){
@@ -181,6 +182,25 @@ int Server::SendAll(const char *msg){
     }
     return 0;
 }
+bool Server::FindGlobalPipe(int p){
+    for(int i=0;i<MAX_GLOBAL_PIPE;i++)
+        if(global_pipe[i] == p)
+            return true;
+    return false;
+}
+void Server::InsertGlobalPipe(int p){
+    for(int i=0;i<MAX_GLOBAL_PIPE;i++){
+        if(global_pipe[i] == -1){
+            global_pipe[i] = p;
+            return;
+        }
+    }
+}
+void Server::EraseGlobalPipe(int p){
+    for(int i=0;i<MAX_GLOBAL_PIPE;i++)
+        if(global_pipe[i] == p)
+            global_pipe[i] = -1;
+}
 void zombie_handler(int sig){
 	int status, pid = waitpid(-1, &status, WNOHANG);
 	if(pid!=-1&&WIFEXITED(status))
@@ -188,7 +208,7 @@ void zombie_handler(int sig){
 }
 int main(){
     srand(time(0));
-    key_t key = ftok("/tmp/np", 0);
+    key_t key = 0;
     int server_shm_id = shmget(key, sizeof(Server), 0666|IPC_CREAT);    
     if(server_shm_id == -1){
         perror("shared memory error");
@@ -198,7 +218,7 @@ int main(){
     Server *server = new(shm) Server(PORT, MAX_EPOLL_SIZE);
     server->shm_id = server_shm_id;
     for(int i=0;i<MAX_CLIENT_SIZE;i++){
-        server->msg[i].key = ftok("/tmp/np", i + MAX_CLIENT_SIZE);
+        server->msg[i].key = i + MAX_CLIENT_SIZE;
         shm_sem_create(server->msg[i].key, 1);
     }
 	signal(SIGCHLD, zombie_handler);
