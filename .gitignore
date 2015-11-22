@@ -1,4 +1,6 @@
 # Compiled Object files
+baozi
+*.txt
 .*.sw[opq]
 *.slo
 *.lo
