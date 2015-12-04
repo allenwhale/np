@@ -3,13 +3,14 @@
 #include <bits/stdc++.h>
 #include "function.h"
 #include "sem.h"
+#include <unistd.h>
 
 Message::Message(){
     Init();
 }
 
 void Message::Init(){
-    memset(msg, 0, sizeof(msg));
+    //memset(msg, 0, sizeof(msg));
     rear = 0;
 }
 
@@ -25,6 +26,8 @@ void Message::Append(const char *new_msg){
 
 void Message::Flush(){
     int sem = shm_sem_open(key);
+    //printf("sem %d %d\n", sem, key);
+    FSTDOUT;
     shm_sem_wait(sem);
     for(int i=0;i<rear;i++){
         printf("%s", msg[i]);

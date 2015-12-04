@@ -49,8 +49,10 @@ int Server::Connect(){
         perror("listen failed");
         return -1;
     }
+    set_nonblock(sockfd);
+    set_nonblock(STDIN_FILENO);
 	epoll_add_event(epfd, sockfd, EPOLLIN);
-	epoll_add_event(epfd, STDIN_FILENO, EPOLLIN);
+    epoll_add_event(epfd, STDIN_FILENO, EPOLLIN);
     return 0;
 }
 int Server::ServerProcess(){
@@ -60,6 +62,7 @@ int Server::ServerProcess(){
     if((fd = accept(sockfd, (sockaddr*)&cliaddr, (socklen_t*)&addrlen)) < 0){
 		return -1;
 	}
+    //set_nonblock(fd);
     int id = InsertNewClient(fd, cliaddr);
     char _msg[256] = {0};
     sprintf(_msg, "*** User \'%s\' entered from %s/%d. ***\n", clients[id].nickname, clients[id].ip, clients[id].port);
@@ -168,6 +171,11 @@ void Server::Close(){
 	for(auto pid: client_pid)
 		printf("close %d\n", pid), kill(pid, SIGINT), waitpid(pid, NULL, 0);
 	close(sockfd);
+    for(int i=0;i<MAX_CLIENT_SIZE;i++){
+        int sem = shm_sem_open(msg[i].key);
+        printf("%d %d %d\n", i, sem, msg[i].key);
+        shm_sem_rm(sem);
+    }
     shmdt(this);
 	exit(0);
 }
@@ -208,7 +216,7 @@ void zombie_handler(int sig){
 }
 int main(){
     srand(time(0));
-    key_t key = 0;
+    key_t key = MAX_CLIENT_SIZE * 5;
     int server_shm_id = shmget(key, sizeof(Server), 0666|IPC_CREAT);    
     if(server_shm_id == -1){
         perror("shared memory error");
@@ -218,7 +226,7 @@ int main(){
     Server *server = new(shm) Server(PORT, MAX_EPOLL_SIZE);
     server->shm_id = server_shm_id;
     for(int i=0;i<MAX_CLIENT_SIZE;i++){
-        server->msg[i].key = i + MAX_CLIENT_SIZE;
+        server->msg[i].key = 2*MAX_CLIENT_SIZE+2*i;
         shm_sem_create(server->msg[i].key, 1);
     }
 	signal(SIGCHLD, zombie_handler);

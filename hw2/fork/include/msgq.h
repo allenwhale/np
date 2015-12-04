@@ -3,7 +3,7 @@
 #include <sys/shm.h>
 #include <sys/sem.h>
 #include <sys/ipc.h>
-#define MAX_MESSAGE_SIZE 10
+#define MAX_MESSAGE_SIZE 16
 class Message{
     public:
         char msg[MAX_MESSAGE_SIZE][1024];

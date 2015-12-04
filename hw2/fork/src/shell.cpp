@@ -56,6 +56,7 @@ void Shell::Run(int cli_id, int server_shm_id){
             res = Exec(buf);
             if(res != INTERNAL_COMMAND)Prompt();
         }
+
 	}
 }
 
@@ -84,27 +85,24 @@ int Shell::_Exec(CommandLine& cmd){
 		if(cmd[0].size() < 3) return -1;
 		setenv(cmd[0][1].c_str(), cmd[0][2].c_str(), 1);
     }else if(cmd[0][0] == "who"){
-        server->msg[id].Append("<ID>\t<nickname>\t<IP/port>\t<indicate me>\n");
+        printf("<ID>\t<nickname>\t<IP/port>\t<indicate me>\n");
         for(int i=1;i<MAX_CLIENT_SIZE;i++){
             if(server->clients[i].used){
-                char msg[256] = {0};
-                sprintf(msg, "%d\t%s\t%s/%d%s\n", i, server->clients[i].nickname, server->clients[i].ip, server->clients[i].port, (i==id)?"\t<-me":"");
-                server->msg[id].Append(msg);
+                printf("%d\t%s\t%s/%d%s\n", i, server->clients[i].nickname, server->clients[i].ip, server->clients[i].port, (i==id)?"\t<-me":"");
             }
         }
         return INTERNAL_COMMAND;
     }else if(cmd[0][0] == "name"){
         if(cmd[0].size() < 2) return -1;
         if(server->CheckNickname(cmd[0][1].c_str()) == false){
-            char msg[256] = {0};
-            sprintf(msg, "*** User '%s' already exists. ***\n", cmd[0][1].c_str());
-            server->msg[id].Append(msg);
+            printf("*** User '%s' already exists. ***\n", cmd[0][1].c_str());
         }else{
             server->clients[id].set_nickname(cmd[0][1].c_str());
             char msg[256] = {0};
             sprintf(msg, "*** User from %s/%d is named '%s'. ***\n", server->clients[id].ip, server->clients[id].port, server->clients[id].nickname);
+            printf("%s", msg);
             for(int i=1;i<MAX_CLIENT_SIZE;i++)
-                if(server->clients[i].used)
+                if(server->clients[i].used && i != id)
                     server->msg[i].Append(msg);
         }
         return INTERNAL_COMMAND;
@@ -117,8 +115,7 @@ int Shell::_Exec(CommandLine& cmd){
         buf = buf.substr(buf.find(' ')+1);
         if(server->clients[to_id].used == false){
             char msg[256] = {0};
-            sprintf(msg, "*** Error: user #%d does not exist yet. ***\n", to_id);
-            server->msg[id].Append(msg);
+            printf("*** Error: user #%d does not exist yet. ***\n", to_id);
         }else{
             char msg[256] = {0};
             sprintf(msg, "*** %s told you ***: %s\n", server->clients[id].nickname, buf.c_str());
@@ -129,10 +126,21 @@ int Shell::_Exec(CommandLine& cmd){
         if(cmd[0].size() < 2) return -1;
         char msg[256] = {0};
         sprintf(msg, "*** %s yelled ***: %s\n", server->clients[id].nickname, cmd.origin.substr(cmd.origin.find(' ')+1).c_str());
+        printf("%s", msg);
+        for(int i=1;i<MAX_CLIENT_SIZE;i++)
+            if(server->clients[i].used && i != id)
+                server->msg[i].Append(msg);
+        return INTERNAL_COMMAND;
+    }else if(cmd[0][0] == "kick"){
+        std::string buf = cmd.origin;
+        std::string str_id = buf.substr(buf.find(' '));
+        int to_id = string2int(str_id);
+        char msg[256] = {0};
+        sprintf(msg, "user %d logout\n", to_id);
+        server->msg[0].Append(str_id.c_str());
         for(int i=1;i<MAX_CLIENT_SIZE;i++)
             if(server->clients[i].used)
                 server->msg[i].Append(msg);
-        return INTERNAL_COMMAND;
     }else{
 		cmd.Check(server);
 		if((int)cmd.size() == 0) return -1;
@@ -149,6 +157,14 @@ int Shell::ExecCommand(const CommandLine& cmd){
 		pipe_in = pipe_set[cmd.command_num][i];
 		if(c.pipe_stdout != NON_PIPE)pipe_out = pipe_set[c.pipe_stdout.first][c.pipe_stdout.second];
 		if(c.pipe_stderr != NON_PIPE)pipe_err = pipe_set[c.pipe_stderr.first][c.pipe_stderr.second];
+        if(c.global_pipe_stdin != -1){
+            printf("*** %s (#%d) just received via '%s' ***\n", server->clients[id].nickname, id, cmd.origin.c_str());
+            FSTDOUT;
+        }
+        if(c.global_pipe_stdout != -1){
+            printf("*** %s (#%d) just piped '%s' ***\n", server->clients[id].nickname, id, cmd.origin.c_str());
+            FSTDOUT;
+        }
 		if((pid=fork()) == 0){
 			if(dup2(pipe_in[0], STDIN_FILENO) == -1)perror("dup2 stdin");
 			if(c.pipe_stdout != NON_PIPE){
@@ -168,8 +184,6 @@ int Shell::ExecCommand(const CommandLine& cmd){
             if(c.global_pipe_stdin != -1){
                 char msg[256] = {0};
                 sprintf(msg, "*** %s (#%d) just received via '%s' ***\n", server->clients[id].nickname, id, cmd.origin.c_str());
-                printf("%s", msg);
-                FSTDOUT;
                 for(int i=1;i<MAX_CLIENT_SIZE;i++)
                     if(server->clients[i].used && i != id)
                         server->msg[i].Append(msg);
@@ -180,8 +194,6 @@ int Shell::ExecCommand(const CommandLine& cmd){
             if(c.global_pipe_stdout != -1){
                 char msg[256] = {0};
                 sprintf(msg, "*** %s (#%d) just piped '%s' ***\n", server->clients[id].nickname, id, cmd.origin.c_str());
-                printf("%s", msg);
-                FSTDOUT;
                 for(int i=1;i<MAX_CLIENT_SIZE;i++)
                     if(server->clients[i].used && i != id)
                         server->msg[i].Append(msg);
