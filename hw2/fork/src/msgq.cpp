@@ -10,30 +10,24 @@ Message::Message(){
 }
 
 void Message::Init(){
-    //memset(msg, 0, sizeof(msg));
+    memset(msg, 0, sizeof(msg));
     rear = 0;
 }
 
 void Message::Append(const char *new_msg){
-    int sem = shm_sem_open(key);
-    shm_sem_wait(sem);
+    shm_sem_wait(id);
     memset(msg[rear], 0, sizeof(msg[rear]));
     memcpy(msg[rear], new_msg, strlen(new_msg));
-    rear += 1;
-    shm_sem_post(sem);
-    shm_sem_close(sem);
+    rear = (rear + 1) % MAX_MESSAGE_SIZE;
+    shm_sem_post(id);
 }
 
 void Message::Flush(){
-    int sem = shm_sem_open(key);
-    //printf("sem %d %d\n", sem, key);
-    FSTDOUT;
-    shm_sem_wait(sem);
+    shm_sem_wait(id);
     for(int i=0;i<rear;i++){
         printf("%s", msg[i]);
         FSTDOUT;
     }
     Init();
-    shm_sem_post(sem);
-    shm_sem_close(sem);
+    shm_sem_post(id);
 }

@@ -78,11 +78,12 @@ int Server::ServerProcess(){
 		sh.Run(id, shm_id);
 		exit(0);
 	}else if(pid > 0){
-        int sem = shm_sem_open(msg[id].key);
+        //int sem = shm_sem_open(msg[id].key);
+        int sem = msg[id].id;
         shm_sem_wait(sem);
         msg[id].Init();
         shm_sem_post(sem);
-        shm_sem_close(sem);
+        //shm_sem_close(sem);
         for(int i=1;i<MAX_CLIENT_SIZE;i++)
             if(clients[i].used && i != id)
                 msg[i].Append(_msg);
@@ -172,9 +173,9 @@ void Server::Close(){
 		printf("close %d\n", pid), kill(pid, SIGINT), waitpid(pid, NULL, 0);
 	close(sockfd);
     for(int i=0;i<MAX_CLIENT_SIZE;i++){
-        int sem = shm_sem_open(msg[i].key);
-        printf("%d %d %d\n", i, sem, msg[i].key);
-        shm_sem_rm(sem);
+        //int sem = shm_sem_open(msg[i].key);
+        //printf("%d %d %d\n", i, sem, msg[i].key);
+        shm_sem_rm(msg[i].id);
     }
     shmdt(this);
 	exit(0);
@@ -226,8 +227,9 @@ int main(){
     Server *server = new(shm) Server(PORT, MAX_EPOLL_SIZE);
     server->shm_id = server_shm_id;
     for(int i=0;i<MAX_CLIENT_SIZE;i++){
-        server->msg[i].key = 2*MAX_CLIENT_SIZE+2*i;
+        server->msg[i].key = MAX_CLIENT_SIZE+i;
         shm_sem_create(server->msg[i].key, 1);
+        server->msg[i].id = shm_sem_open(server->msg[i].key);
     }
 	signal(SIGCHLD, zombie_handler);
 	if(server->Connect() != 0)return 0;

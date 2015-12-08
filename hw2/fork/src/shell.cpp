@@ -50,7 +50,7 @@ void Shell::Run(int cli_id, int server_shm_id){
             shmdt(server);
             exit(0);
         }else if(res < 0){
-            usleep(1000);
+            usleep(2000);
             continue;
         }else{
             res = Exec(buf);

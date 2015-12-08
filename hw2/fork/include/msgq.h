@@ -9,6 +9,7 @@ class Message{
         char msg[MAX_MESSAGE_SIZE][1024];
         int rear;
         key_t key;
+        int id;
         Message();
         void Init();
         void Flush();
