@@ -98,12 +98,13 @@ void Server::RequestHandler(int fd){
     fprintf(stderr, "query %s\n", query.c_str());
     fprintf(stderr, "ext %s\n", ext.c_str());
     if(cgi.find(ext) == cgi.end()){
+        fprintf(stderr, "html\n");
         printf("HTTP/1.0 200 OK\r\nContent-Type: text/html\r\n\r\n");
         FILE *f = fopen(path.c_str(), "r");
         memset(buf, 0, sizeof(buf));
         while(fgets(buf, BUF_SIZE, f)){
             printf("%s", buf);
-            //fprintf(stderr, "%s", buf);
+            fprintf(stderr, "%s\n", buf);
         }
         fclose(f);
     }else{

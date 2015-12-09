@@ -17,13 +17,26 @@ void header(){
     printf("HTTP/1.0 200 OK\r\nContent-Type: text/html\r\n\r\n");
 }
 
+string urldecode(const string &str){
+    string res;
+    unsigned int tmp;
+    for(int i=0;i<(int)str.length();i++){
+        if(str[i] == 37){
+            sscanf(str.substr(i+1,2).c_str(), "%x", &tmp);
+            res += (char)tmp;
+            i = i + 2;
+        }else res += str[i];
+    }
+    return res;
+}
+
 args_map parse_args(const char *args){
     args_map res;
     char *new_args = strdup(args);
     char *ptr = strtok(new_args, "&");
     while(ptr){
         char *tmp = strchr(ptr, '=');
-        res[string(ptr, tmp)] = string(tmp+1, ptr + strlen(ptr));
+        res[string(ptr, tmp)] = urldecode(string(tmp+1, ptr + strlen(ptr)));
         ptr = strtok(NULL, "&");
     }
     free(new_args);
