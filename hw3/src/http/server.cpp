@@ -8,6 +8,8 @@
 #include <fcntl.h> 
 #include <sys/stat.h>
 #include <arpa/inet.h>
+#include <netinet/in.h>
+#include <netinet/tcp.h>
 using namespace std;
 
 Server::Server(int _port, int _conn): port(_port), connection(_conn) {}
@@ -26,6 +28,10 @@ bool Server::Connect(){
     dest.sin_addr.s_addr = INADDR_ANY;
     int opt = 1;
     if(setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, (const char*)&opt, sizeof(int)) < 0){
+        perror("setsocketopt failed");
+        return -1;
+    }
+    if(setsockopt(sockfd, IPPROTO_TCP, TCP_NODELAY, (const char*)&opt, sizeof(int)) < 0){
         perror("setsocketopt failed");
         return -1;
     }
@@ -100,9 +106,12 @@ void Server::RequestHandler(int fd){
     fprintf(stderr, "filename %s\n", filename.c_str());
     fprintf(stderr, "query %s\n", query.c_str());
     fprintf(stderr, "ext %s\n", ext.c_str());
+    printf("HTTP/1.0 200 OK\r\n");
+    //printf("Content-Type: text/html\r\n\r\n");
+    fflush(stdout);
     if(cgi.find(ext) == cgi.end()){
+        printf("Content-Type: text/html\r\n\r\n");
         fprintf(stderr, "html\n");
-        printf("HTTP/1.0 200 OK\r\nContent-Type: text/html\r\n\r\n");
         FILE *f = fopen(path.c_str(), "r");
         memset(buf, 0, sizeof(buf));
         while(fgets(buf, BUF_SIZE, f)){

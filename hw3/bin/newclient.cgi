@@ -5,7 +5,7 @@ use strict;
 use IO::Socket;
 use CGI qw(:standard); 
 
-print "Content-Type: text/plain\n\n";
+print "Content-Type: text/plain\r\n\r\n";
 
 my $host;
 my $port;
