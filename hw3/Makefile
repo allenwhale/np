@@ -31,6 +31,7 @@ $(OBJ)/http.o: $(HTTP_SRC)/http.cpp $(HTTP_INCLUDE)/http.h
 $(OBJ)/server.o: $(HTTP_SRC)/server.cpp $(HTTP_INCLUDE)/server.h
 	$(CC) $(HTTP_FLAGS) -c $(HTTP_SRC)/server.cpp -o $(OBJ)/server.o
 
+
 clean:
 	rm -rf $(BIN)/*.cgi $(BIN)/*.out
 	rm -rf $(OBJ)/*
