@@ -1,9 +1,9 @@
+#include <winsock2.h>
+#include <bits/stdc++.h>
 #define WM_SOCKET_SERVER    (WM_USER + 101)
 #define WM_SOCKET_CLIENT    (WM_USER + 102)
 #define WM_SOCKET_CGI       (WM_USER + 103)
-#define BUF_SIZE 8192
-#include <winsock2.h>
-#include <bits/stdc++.h>
+#define BUF_SIZE 1024
 using namespace std;
 typedef map<string, string> args_map;
 struct cgi_meta{
