@@ -68,10 +68,13 @@ void Server::Run(){
 
 void Server::RequestHandler(int fd){
     char buf[BUF_SIZE] ={0};
-    if(read(fd, buf, BUF_SIZE) <= 0){
+    int ret;
+    if((ret = read(fd, buf, BUF_SIZE)) <= 0){
         perror("");
         exit(1);
     }
+    while(isspace(buf[ret - 1]))
+        buf[--ret];
     if(strncmp(buf, "GET", 3) && strncmp(buf, "get", 3))
         exit(1);
     char *ptr = strtok(buf, " ");
