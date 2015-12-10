@@ -3,7 +3,7 @@
 #define WM_SOCKET_SERVER    (WM_USER + 101)
 #define WM_SOCKET_CLIENT    (WM_USER + 102)
 #define WM_SOCKET_CGI       (WM_USER + 103)
-#define BUF_SIZE 1024
+#define BUF_SIZE 8192
 using namespace std;
 typedef map<string, string> args_map;
 struct cgi_meta{
@@ -18,6 +18,7 @@ map<SOCKET, cgi_meta> map_cgi_client;
 map<SOCKET, int> map_client_count;
 set<string> cgi = {".cgi"};
 
+bool send_all(SOCKET, const void *, size_t);
 LRESULT CALLBACK WindowProc(HWND, UINT, WPARAM, LPARAM);
 args_map parse_args(const char *);
 void close_cgi(const SOCKET &);
@@ -142,8 +143,8 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT umsg, WPARAM wparam, LPARAM lparam) 
                 ext = filename.substr(filename.find_last_of('.'));
             else ext = "";
             if(cgi.find(ext) == cgi.end()){
-                int ret = send(cli_fd, "HTTP/1.0 200 OK\r\nConnection: close\r\nContent-Type: text/html\r\n\r\n", 63, 0);
-                if(ret == SOCKET_ERROR || ret <= 0){
+                //int ret = send_all(cli_fd, "HTTP/1.0 200 OK\r\nConnection: close\r\nContent-Type: text/html\r\n\r\n", 63);
+                if(!send_all(cli_fd, "HTTP/1.0 200 OK\r\nConnection: close\r\nContent-Type: text/html\r\n\r\n", 63)){
                     closesocket(cli_fd);
                     return 0;
                 }
@@ -151,8 +152,8 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT umsg, WPARAM wparam, LPARAM lparam) 
                 memset(buf, 0, sizeof(buf));
                 while(fgets(buf, BUF_SIZE, f)){
                     string tmp = string(buf) + "\r\n";
-                    send(cli_fd, buf, sizeof(buf), 0);
-                    if(ret == SOCKET_ERROR || ret <= 0){
+                    //send_all(cli_fd, buf, strlen(buf));
+                    if(!send_all(cli_fd, buf, strlen(buf))){
                         closesocket(cli_fd);
                         return 0;
                     }
@@ -225,8 +226,8 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT umsg, WPARAM wparam, LPARAM lparam) 
                     return 0;
                 }
                 echo_msg(meta, "<b>" + html_encode(buf) + "</b>");
-                int ret = send(cgi_fd, buf, strlen(buf), 0);
-                if(ret == SOCKET_ERROR || ret <= 0){
+                //int ret = send(cgi_fd, buf, strlen(buf), 0);
+                if(!send_all(cgi_fd, buf, strlen(buf))){
                     close_cgi(cgi_fd);
                     return 0;
                 }
@@ -345,4 +346,15 @@ void echo_msg(const cgi_meta &meta, const string &msg){
     char buf[BUF_SIZE] = {0};
     sprintf(buf, t_buf, meta.id, msg.c_str());
     send(meta.sock_fd, buf, strlen(buf), 0);
+}
+
+bool send_all(SOCKET socket, const void *buffer, size_t length){
+    char *ptr = (char*) buffer;
+    while (length > 0){
+        int i = send(socket, ptr, length, 0);
+        if (i < 1) return false;
+        ptr += i;
+        length -= i;
+    }
+    return true;
 }
