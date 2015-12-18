@@ -10,7 +10,9 @@
 #include <arpa/inet.h>
 #include <netinet/in.h>
 #include <netinet/tcp.h>
+#include <netdb.h>
 using namespace std;
+extern char **environ;
 
 Server::Server(int _port, int _conn): port(_port), connection(_conn) {}
 void Server::SetCGI(const set<string> &_cgi){
@@ -63,7 +65,7 @@ void Server::Run(){
             close(sockfd);
             dup2(cli_fd, STDIN_FILENO);
             dup2(cli_fd, STDOUT_FILENO);
-            RequestHandler(cli_fd);
+            RequestHandler(cli_fd, cli_addr);
             fprintf(stderr, "done\n");
             exit(0);
         }else{
@@ -72,13 +74,14 @@ void Server::Run(){
     }
 }
 
-void Server::RequestHandler(int fd){
+void Server::RequestHandler(int fd, sockaddr_in addr){
     char buf[BUF_SIZE] ={0};
     int ret;
     if((ret = read(fd, buf, BUF_SIZE)) <= 0){
         perror("");
         exit(1);
     }
+    int content_length = strlen(buf) - (strstr(buf, "\r\n\r\n") - buf);
     while(isspace(buf[ret - 1]))
         buf[--ret];
     if(strncmp(buf, "GET", 3) && strncmp(buf, "get", 3))
@@ -120,7 +123,20 @@ void Server::RequestHandler(int fd){
         }
         fclose(f);
     }else{
+        clearenv();
+        char *ip = inet_ntoa(addr.sin_addr);
+        in_addr _in_addr;
+        inet_pton(AF_INET, ip, &_in_addr);
+        hostent *host = gethostbyaddr(&_in_addr, sizeof(_in_addr), AF_INET);
         setenv("QUERY_STRING", query.c_str(), 1);
+        setenv("CONTENT_LENGTH", to_string(content_length).c_str(), 1);
+        setenv("REQUEST_METHOD", "GET", 1);
+        setenv("SCRIPT_NAME", path.substr(1).c_str(), 1);
+        setenv("REMOTE_HOST", host->h_name, 1);
+        setenv("REMOTE_ADDR", ip, 1);
+        setenv("AUTH_TYPE", "auth_type", 1);
+        setenv("REMOTE_USER", "remote_user", 1);
+        setenv("REMOTE_IDENT", "remote_ident", 1);
         execl(path.c_str(), filename.c_str(), NULL);
     }
 }

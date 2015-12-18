@@ -22,6 +22,6 @@ class Server{
         void SetCGI(const set<string>&);
         bool Connect();
         void Run();
-        void RequestHandler(int);
+        void RequestHandler(int, sockaddr_in);
 };
 #endif
