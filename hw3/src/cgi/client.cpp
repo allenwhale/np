@@ -70,9 +70,9 @@ void run(const args_map &args){
             exit(1);
         for(int i=0;i<=5;i++){
             if(clients_fd[i] != -1){
-                if(clients_status[i] == C_READING && FD_ISSET(clients_fd[i], &rfds)){
+                if(FD_ISSET(clients_fd[i], &rfds)){
                     char t_buf[BUF_SIZE] = {0};
-                    if(read(clients_fd[i], t_buf, BUF_SIZE) <= 0){
+                    if(read(clients_fd[i], t_buf, BUF_SIZE) == 0){
                         printf("read cli close %d %d\n", i, clients_fd[i]);
                         close(clients_fd[i]);
                         FD_CLR(clients_fd[i], &n_wfds);
@@ -84,15 +84,16 @@ void run(const args_map &args){
                     clients_status[i] = has_prompt(t_buf) ? C_WRITING : C_READING;
                     string buf = html_encode(t_buf);
                     echo_msg(i, buf);
-                }else if (clients_status[i] == C_WRITING && FD_ISSET(clients_fd[i], &wfds)){
+                }else if (f_batch[i] && clients_status[i] == C_WRITING && FD_ISSET(clients_fd[i], &wfds)){
                     char buf[BUF_SIZE] = {0};
                     if(fgets(buf, BUF_SIZE, f_batch[i]) == NULL){
+                        f_batch[i] = NULL;
                         printf("fgets cli close %d %d\n", i, clients_fd[i]);
-                        close(clients_fd[i]);
+                        //close(clients_fd[i]);
                         FD_CLR(clients_fd[i], &n_wfds);
-                        FD_CLR(clients_fd[i], &n_rfds);
-                        clients_fd[i] = -1;
-                        conn --;
+                       //FD_CLR(clients_fd[i], &n_rfds);
+                        //clients_fd[i] = -1;
+                        //conn --;
                         continue;
                     }
                     echo_msg(i, "<b>" + html_encode(buf) + "</b>");
