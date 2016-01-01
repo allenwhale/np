@@ -33,3 +33,7 @@ $(OBJ)/client.o: $(CGI_SRC)/client.cpp $(CGI_INCLUDE)/client.h
 
 $(OBJ)/hw4.o: $(CGI_SRC)/hw4.cpp $(CGI_INCLUDE)/hw4.h
 	$(CC) $(CGI_CFLAGS) -c -o $(OBJ)/hw4.o $(CGI_SRC)/hw4.cpp
+
+clean:
+	rm -rf bin/*
+	rm -rf obj/*

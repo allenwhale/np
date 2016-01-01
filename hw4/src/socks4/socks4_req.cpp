@@ -30,16 +30,20 @@ string Socks4Request::get_src_ip() const {
     return string(inet_ntoa(addr));
 }
 
-void Socks4Request::PrintMsg(const string &t_buf) const {
-    string buf = t_buf;
+void Socks4Request::PrintMsg(const string &buf) const {
     printf("----- MSG START -----\n");
     printf("VN: %d\n", vn);
     printf("CD: %d(%s)\n", cd, (cd == 0x01) ? "Connect Mode" : "Bind Mode");
     printf("DST: %s(%d)\n", get_dst_ip().c_str(), dst_port);
     printf("SRC: %s(%d)\n", get_src_ip().c_str(), src_port);
     printf("REPLY: %d(%s)\n", permit, permit ? "GRANTED" : "DENIED");
-    if((int)buf.size() > 100)
-        buf.resize(100);
-    printf("CONTENT:\n%s\n", buf.c_str());
+    printf("CONTENT:\n");
+    for(int i=0,j=0;i<(int)buf.size()&&j<80;i++){
+        if(isprint(buf[i])){
+            printf("%c", buf[i]);
+            j++;
+        }
+    }
+    printf("\n");
     printf("----- MSG   END -----\n");
 }
