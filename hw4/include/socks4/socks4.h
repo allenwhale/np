@@ -17,6 +17,7 @@ class Socks4Server{
         int port;
         string socks_conf;
         Socks4Firewall firewall;
+        Socks4Firewall src_firewall;
         Socks4Server(int,const string &);
         int Connect();
         int ReadConf();

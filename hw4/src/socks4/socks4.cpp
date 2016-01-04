@@ -48,6 +48,14 @@ int Socks4Server::ReadConf(){
             firewall.Add(BIND_MODE, {ip, bits});
         }
     }
+    f = fopen("src_socks.conf", "r");
+    while(~fscanf(f, "%s %s %[^/]/%d", op, mode, ip, &bits)){
+        if(mode[0] == 'c'){
+            src_firewall.Add(CONNECT_MODE, {ip, bits});
+        }else if(mode[0] == 'b'){
+            src_firewall.Add(BIND_MODE, {ip, bits});
+        }
+    }
     return 0;
 }
 
@@ -76,6 +84,10 @@ void Socks4Server::Handler(int clifd, const sockaddr_in &cliaddr){
     if(n < 8) exit(0);
     Socks4Request req(buf, cliaddr);
     if(firewall.Check((req.cd == 0x01) ? 0 : 1, req.dst_ip) == false){
+        req.PrintMsg(buf);
+        buf[1] = 0x5B;
+        write(clifd, buf, 8);
+    }else if(src_firewall.Check((req.cd == 0x01) ? 0 : 1, req.src_ip) == false){
         req.PrintMsg(buf);
         buf[1] = 0x5B;
         write(clifd, buf, 8);
@@ -160,7 +172,7 @@ void Socks4Server::BindHandler(int clifd, const Socks4Request &req){
     if(getsockname(bindfd, (sockaddr*)&sa, &sa_len) < 0)
         exit(3);
     int bind_port = ntohs(sa.sin_port);
-    if(listen(bindfd, 5) < 0){
+    if(listen(bindfd, 20) < 0){
         exit(3);
     }
     char buf[BUF_SIZE] = {0};
