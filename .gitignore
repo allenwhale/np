@@ -28,4 +28,6 @@ baozi
 # Executables
 *.exe
 *.out
+*.cgi
 *.app
+compile_commands.json

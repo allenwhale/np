@@ -2,7 +2,7 @@ BIN=./bin
 OBJ=./obj
 INCLUDE=./include
 SRC=./src
-CC=g++
+CC=clang++
 CGI_SRC=$(SRC)/cgi
 CGI_INCLUDE=$(INCLUDE)/cgi
 CGI_FLAGS=-g -I. -I$(CGI_INCLUDE) -std=c++11 -O2 -Wno-unused-result

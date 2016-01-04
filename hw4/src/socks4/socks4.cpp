@@ -151,8 +151,7 @@ void Socks4Server::BindHandler(int clifd, const Socks4Request &req){
     memset(&bind_addr, 0, sizeof(bind_addr));
     bind_addr.sin_family = AF_INET;
     bind_addr.sin_addr.s_addr = htonl(INADDR_ANY);
-    int p = rand()%1000+60000;
-    bind_addr.sin_port = htons(p);
+    bind_addr.sin_port = htons(INADDR_ANY);
     if(bind(bindfd, (sockaddr*)&bind_addr, sizeof(bind_addr)) < 0){
         exit(3);
     }
